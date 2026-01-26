@@ -1,0 +1,28 @@
+# ===== Django =====
+*.pyc
+*.pyo
+__pycache__/
+*.log
+local_settings.py
+db.sqlite3
+
+# ===== Ambiente =====
+.env
+venv/
+.env.*
+.venv/
+
+# ===== Docker =====
+postgres_data/
+*.pid
+
+# ===== IDEs =====
+.vscode/
+.idea/
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+
+# ===== Migrations cache =====
+**/__pycache__/
