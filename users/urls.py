@@ -1,6 +1,8 @@
-from django.urls import path
-from .views import TesteJWTView
+from .views import UserViewSet
 
-urlpatterns = [
-    path('teste/', TesteJWTView.as_view(), name='teste-jwt'),
-]
+from rest_framework.routers import DefaultRouter
+
+router = DefaultRouter()
+router.register(r'users', UserViewSet, basename='users')
+
+urlpatterns = router.urls
