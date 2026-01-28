@@ -9,7 +9,8 @@ from .models import User
 from .serializers import (
     UserSerializer,
     UserCreateSerializer,
-    UserUpdateSerializer
+    UserUpdateSerializer,
+    UserMeSerializer
 )
 from .permissions import IsAdminClinica
 
@@ -54,3 +55,9 @@ class UserViewSet(ModelViewSet):
                 {"detail": "Refresh token inválido ou ausente"},
                 status=status.HTTP_400_BAD_REQUEST
             )
+    
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def me(self, request):
+        serializer = UserMeSerializer(request.user)
+        return Response(serializer.data)
