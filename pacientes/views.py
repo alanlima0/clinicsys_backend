@@ -2,6 +2,7 @@ from django.db.models import Q
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 
+from users.permissions import PacientePermission, IsAdminClinica
 
 from .models import Paciente
 from .serializers import PacienteSerializer
@@ -9,7 +10,7 @@ from .serializers import PacienteSerializer
 
 class PacienteViewSet(ModelViewSet):
     serializer_class = PacienteSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, PacientePermission]
 
     def get_queryset(self):
         queryset = Paciente.objects.all().order_by('-data_cadastro')
