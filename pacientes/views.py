@@ -10,7 +10,7 @@ from .serializers import PacienteSerializer
 
 class PacienteViewSet(ModelViewSet):
     serializer_class = PacienteSerializer
-    permission_classes = [IsAuthenticated, PacientePermission, IsAdminClinica]
+    permission_classes = [IsAuthenticated] #PacientePermission, IsAdminClinica
 
     def get_queryset(self):
         queryset = Paciente.objects.all().order_by('-data_cadastro')
