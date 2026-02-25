@@ -10,6 +10,7 @@ class Paciente(models.Model):
     telefone = models.CharField(max_length=20)
     sexo = models.CharField(max_length=1, choices=Sexo.choices)
     data_cadastro = models.DateTimeField(auto_now_add=True)
+    altura = models.IntegerField()
 
     def __str__(self):
         return self.nome

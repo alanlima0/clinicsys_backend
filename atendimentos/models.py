@@ -12,7 +12,7 @@ class Atendimento(models.Model):
     class FormaPagamento(models.TextChoices):
         DINHEIRO = 'DINHEIRO', 'Dinheiro'
         CARTAO = 'CARTAO', 'Cartão'
-        CONVENIO = 'CONVENIO', 'Convênio'
+        PIX = 'PIX', 'Pix'
 
     paciente = models.ForeignKey(Paciente, on_delete=models.CASCADE)
     procedimento = models.ForeignKey(Procedimento, on_delete=models.PROTECT)

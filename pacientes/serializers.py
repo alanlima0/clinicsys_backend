@@ -12,7 +12,8 @@ class PacienteSerializer(serializers.ModelSerializer):
             'data_nascimento',
             'telefone',
             'sexo',
-            'data_cadastro'
+            'data_cadastro',
+            'altura'
         ]
         read_only_fields = ['id', 'data_cadastro']
     

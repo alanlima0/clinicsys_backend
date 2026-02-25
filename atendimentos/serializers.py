@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Atendimento, Triagem, Anamnese, Prescricao
 from caixa.models import CaixaDiario
+from utils.calcular_idade import calcular_idade
 
 
 from pacientes.serializers import PacienteSerializer
@@ -29,13 +30,23 @@ class AtendimentoCreateSerializer(serializers.ModelSerializer):
 class AtendimentoListSerializer(serializers.ModelSerializer):
     paciente_nome = serializers.CharField(source='paciente.nome', read_only=True)
     procedimento_nome = serializers.CharField(source='procedimento.nome', read_only=True)
-    
+    idade = serializers.SerializerMethodField()
+
     class Meta:
         model = Atendimento
         fields = [
-            'id', 'paciente_nome', 'procedimento_nome', 
-            'prioridade', 'criado_em', 'chamado', 'finalizado'
+            'id',
+            'paciente_nome',
+            'procedimento_nome',
+            'idade',
+            'prioridade',
+            'criado_em',
+            'chamado',
+            'finalizado',
         ]
+
+    def get_idade(self, obj):
+        return calcular_idade(obj.paciente.data_nascimento)
 
 # Serializers do prontuário
 class TriagemSerializer(serializers.ModelSerializer):
@@ -64,3 +75,6 @@ class AtendimentoDetalheSerializer(serializers.ModelSerializer):
     class Meta:
         model = Atendimento
         fields = '__all__'
+
+
+

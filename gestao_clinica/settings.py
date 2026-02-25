@@ -190,4 +190,5 @@ CORS_ALLOW_METHODS = [
 CORS_ALLOW_HEADERS = [
     'content-type',
     'authorization',
+    'ngrok-skip-browser-warning',
 ]
