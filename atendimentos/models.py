@@ -37,7 +37,6 @@ class Triagem(models.Model):
     )
 
     peso = models.DecimalField(max_digits=5, decimal_places=2)
-    altura = models.DecimalField(max_digits=4, decimal_places=2)
     pressao_arterial = models.CharField(max_length=10)
     temperatura = models.DecimalField(max_digits=4, decimal_places=1)
     saturacao = models.PositiveSmallIntegerField()

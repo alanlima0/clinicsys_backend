@@ -9,6 +9,18 @@ from .models import (
 from .serializers import *
 
 from caixa.serializers import CaixaDiarioSerializer
+from caixa.models import CaixaDiario
+
+
+# class AtendimentoViewSet(viewsets.ModelViewSet):
+#     queryset = Atendimento.objects.all()
+    
+#     def get_serializer_class(self):
+#         if self.action == 'create':
+#             return AtendimentoCreateSerializer
+#         elif self.action == 'retrieve':
+#             return AtendimentoDetalheSerializer
+#         return AtendimentoListSerializer
 
 class AtendimentoViewSet(viewsets.ModelViewSet):
     queryset = Atendimento.objects.all()
@@ -19,6 +31,22 @@ class AtendimentoViewSet(viewsets.ModelViewSet):
         elif self.action == 'retrieve':
             return AtendimentoDetalheSerializer
         return AtendimentoListSerializer
+
+    def get_queryset(self):
+        # 1. Pega a queryset padrão (Atendimento.objects.all())
+        queryset = super().get_queryset()
+        
+        # 2. Verifica se existe o parâmetro '?data=YYYY-MM-DD' na URL
+        data_filtro = self.request.query_params.get('data', None)
+        
+        if data_filtro:
+            # 3. Aplica o filtro
+            # ⚠️ ATENÇÃO: Estou a usar 'criado_em__date'. 
+            # Se o campo de data no seu model Atendimento se chamar de outra forma 
+            # (ex: 'data_atendimento'), mude 'criado_em__date' para 'data_atendimento__date'.
+            queryset = queryset.filter(criado_em__date=data_filtro)
+            
+        return queryset
     
     # 📋 ROTA: Listar fila de atendimentos
     @action(detail=False, methods=['get'], url_path='fila')
@@ -30,7 +58,7 @@ class AtendimentoViewSet(viewsets.ModelViewSet):
         atendimentos = Atendimento.objects.filter(
             finalizado=False
         ).order_by(
-            '-prioridade',  # URGENTE > PREFERENCIAL > NORMAL
+            '-prioridade',
             'criado_em'
         )
         serializer = self.get_serializer(atendimentos, many=True)
@@ -73,6 +101,55 @@ class AtendimentoViewSet(viewsets.ModelViewSet):
         serializer = AtendimentoDetalheSerializer(atendimento)
         return Response(serializer.data)
 
+    # 🩺 ROTA: Buscar triagem pelo atendimento
+    @action(detail=True, methods=['get'], url_path='triagem')
+    def triagem(self, request, pk=None):
+        """
+        GET /api/atendimentos/{id}/triagem/
+        """
+        atendimento = self.get_object()
+        triagem = Triagem.objects.filter(atendimento=atendimento).first()
+
+        if not triagem:
+            return Response(
+                {"detail": "Triagem não encontrada"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = TriagemSerializer(triagem)
+        return Response(serializer.data)
+
+    # 📋 ROTA: Buscar anamnese pelo atendimento
+    @action(detail=True, methods=['get'], url_path='anamnese')
+    def anamnese(self, request, pk=None):
+        """
+        GET /api/atendimentos/{id}/anamnese/
+        """
+        atendimento = self.get_object()
+        anamnese = Anamnese.objects.filter(atendimento=atendimento).first()
+
+        if not anamnese:
+            return Response(
+                {"detail": "Anamnese não encontrada"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = AnamneseSerializer(anamnese)
+        return Response(serializer.data)
+
+    # 💊 ROTA: Buscar prescrições pelo atendimento
+    @action(detail=True, methods=['get'], url_path='prescricoes')
+    def prescricoes(self, request, pk=None):
+        """
+        GET /api/atendimentos/{id}/prescricoes/
+        """
+        atendimento = self.get_object()
+        prescricoes = Prescricao.objects.filter(atendimento=atendimento)
+
+        serializer = PrescricaoSerializer(prescricoes, many=True)
+        return Response(serializer.data)
+
+
 class TriagemViewSet(viewsets.ModelViewSet):
     """
     POST /api/triagens/
@@ -81,6 +158,7 @@ class TriagemViewSet(viewsets.ModelViewSet):
     queryset = Triagem.objects.all()
     serializer_class = TriagemSerializer
 
+
 class AnamneseViewSet(viewsets.ModelViewSet):
     """
     POST /api/anamneses/
@@ -88,6 +166,7 @@ class AnamneseViewSet(viewsets.ModelViewSet):
     """
     queryset = Anamnese.objects.all()
     serializer_class = AnamneseSerializer
+
 
 class PrescricaoViewSet(viewsets.ModelViewSet):
     """
@@ -136,7 +215,6 @@ class CaixaDiarioViewSet(viewsets.ReadOnlyModelViewSet):
         if data_fim:
             queryset = queryset.filter(criado_em__date__lte=data_fim)
         
-        # Total por forma de pagamento
         totais = queryset.values('forma_pagamento').annotate(
             total=Sum('valor')
         )
