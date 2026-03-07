@@ -24,7 +24,8 @@ class Atendimento(models.Model):
     criado_em = models.DateTimeField(auto_now_add=True)
     chamado = models.BooleanField(default=False)
     finalizado = models.BooleanField(default=False)
-
+    hora_chamada = models.DateTimeField(auto_now=True, null=True, blank=True)
+    
     def __str__(self):
         return f'{self.paciente.nome} - {self.procedimento.nome}'
 
@@ -41,7 +42,7 @@ class Triagem(models.Model):
     temperatura = models.DecimalField(max_digits=4, decimal_places=1)
     saturacao = models.PositiveSmallIntegerField()
     frequencia_cardiaca = models.PositiveSmallIntegerField()
-
+    
     criado_em = models.DateTimeField(auto_now_add=True)
 
 
