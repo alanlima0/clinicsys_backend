@@ -2,6 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
+from django.utils import timezone # ✅ IMPORTAÇÃO ADICIONADA AQUI
 
 from .models import Atendimento, Triagem, Anamnese, Prescricao
 from .serializers import *
@@ -44,7 +45,7 @@ class AtendimentoViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(atendimentos, many=True)
         return Response(serializer.data)
 
-    # 🔔 CHAMAR PACIENTE
+    # 🔔 CHAMAR PACIENTE (ATUALIZADO PARA MÚLTIPLOS PROCEDIMENTOS E CHAMADAS REPETIDAS)
     @action(detail=True, methods=['post'], url_path='chamar')
     def chamar(self, request, pk=None):
         atendimento = self.get_object()
@@ -55,13 +56,20 @@ class AtendimentoViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        atendimento.chamado = True
-        atendimento.save()
+        # ✅ Agora ele atualiza também a 'hora_chamada' com o momento exato do clique
+        Atendimento.objects.filter(
+            paciente=atendimento.paciente,
+            criado_em__date=atendimento.criado_em.date(),
+            finalizado=False
+        ).update(chamado=True, hora_chamada=timezone.now())
+
+        # Atualiza o objeto atual com as informações novas do banco
+        atendimento.refresh_from_db()
 
         serializer = self.get_serializer(atendimento)
         return Response(serializer.data)
 
-    # ✅ FINALIZAR ATENDIMENTO
+    # ✅ FINALIZAR ATENDIMENTO (ATUALIZADO PARA MÚLTIPLOS PROCEDIMENTOS)
     @action(detail=True, methods=['post'], url_path='finalizar')
     def finalizar(self, request, pk=None):
         atendimento = self.get_object()
@@ -78,8 +86,16 @@ class AtendimentoViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        atendimento.finalizado = True
-        atendimento.save()
+        # ✅ Encontra e marca como FINALIZADO todos os procedimentos 
+        # desse mesmo paciente na data de hoje
+        Atendimento.objects.filter(
+            paciente=atendimento.paciente,
+            criado_em__date=atendimento.criado_em.date(),
+            finalizado=False
+        ).update(finalizado=True)
+
+        # Atualiza o objeto atual com as informações novas do banco
+        atendimento.refresh_from_db()
 
         serializer = self.get_serializer(atendimento)
         return Response(serializer.data)
@@ -107,7 +123,7 @@ class AtendimentoViewSet(viewsets.ModelViewSet):
         serializer = AtendimentoDetalheSerializer(atendimento)
         return Response(serializer.data)
 
-    # 📂 HISTÓRICO DO PACIENTE (NOVA ROTA)
+    # 📂 HISTÓRICO DO PACIENTE
     @action(detail=True, methods=['get'], url_path='historico')
     def historico(self, request, pk=None):
         atendimento_atual = self.get_object()
@@ -132,7 +148,7 @@ class AtendimentoViewSet(viewsets.ModelViewSet):
         serializer = TriagemSerializer(triagem)
         return Response(serializer.data)
 
-    # 📋 ANAMNESE (AGORA ACEITA GET E POST)
+    # 📋 ANAMNESE
     @action(detail=True, methods=['get', 'post'], url_path='anamnese')
     def anamnese(self, request, pk=None):
         atendimento = self.get_object()
@@ -152,7 +168,7 @@ class AtendimentoViewSet(viewsets.ModelViewSet):
         )
         return Response(AnamneseSerializer(anamnese).data, status=status.HTTP_200_OK)
 
-    # 💊 PRESCRIÇÕES (AGORA ACEITA GET E POST)
+    # 💊 PRESCRIÇÕES
     @action(detail=True, methods=['get', 'post'], url_path='prescricoes')
     def prescricoes(self, request, pk=None):
         atendimento = self.get_object()
