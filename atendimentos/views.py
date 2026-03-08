@@ -24,10 +24,16 @@ class AtendimentoViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = super().get_queryset()
 
+        # Pega os parâmetros da URL
         data_filtro = self.request.query_params.get('data')
+        paciente_filtro = self.request.query_params.get('paciente') # ✅ ADICIONADO AQUI
 
         if data_filtro:
             queryset = queryset.filter(criado_em__date=data_filtro)
+            
+        # ✅ ADICIONADO AQUI: Filtra pelo paciente e ordena do mais recente pro mais antigo
+        if paciente_filtro:
+            queryset = queryset.filter(paciente_id=paciente_filtro).order_by('-criado_em')
 
         return queryset
 
