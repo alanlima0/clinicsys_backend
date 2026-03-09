@@ -11,12 +11,9 @@ python manage.py collectstatic --no-input
 echo "Rodando as migrações do banco de dados..."
 python manage.py migrate
 
-echo "Criando superusuário (se não existir)..."
-# O Django 3.0+ permite criar superusuários via variáveis de ambiente.
-# O "|| true" no final garante que, se o usuário já existir nos próximos deploys, o script não quebre o deploy.
-if [[ -n "${DJANGO_SUPERUSER_USERNAME}" && -n "${DJANGO_SUPERUSER_PASSWORD}" ]]; then
-  python manage.py createsuperuser \
-      --noinput \
-      --username "${DJANGO_SUPERUSER_USERNAME}" \
-      --email "${DJANGO_SUPERUSER_EMAIL:-admin@exemplo.com}" || true
+echo "Criando superusuário..."
+# Quando usamos --no-input, o Django busca SOZINHO as variáveis:
+# DJANGO_SUPERUSER_USERNAME, DJANGO_SUPERUSER_EMAIL e DJANGO_SUPERUSER_PASSWORD
+if [ "$DJANGO_SUPERUSER_USERNAME" ]; then
+  python manage.py createsuperuser --no-input || true
 fi
