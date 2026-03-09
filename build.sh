@@ -11,9 +11,12 @@ python manage.py collectstatic --no-input
 echo "Rodando as migrações do banco de dados..."
 python manage.py migrate
 
-echo "Criando superusuário..."
-# Quando usamos --no-input, o Django busca SOZINHO as variáveis:
-# DJANGO_SUPERUSER_USERNAME, DJANGO_SUPERUSER_EMAIL e DJANGO_SUPERUSER_PASSWORD
-if [ "$DJANGO_SUPERUSER_USERNAME" ]; then
-  python manage.py createsuperuser --no-input || true
+echo "Criando superusuário customizado..."
+# Como seu modelo usa 'nome' em vez de 'username', passamos o argumento explicitamente.
+# O Django lerá a senha da variável DJANGO_SUPERUSER_PASSWORD automaticamente.
+if [ "$DJANGO_SUPERUSER_NOME" ]; then
+  python manage.py createsuperuser \
+    --no-input \
+    --nome "$DJANGO_SUPERUSER_NOME" \
+    --email "$DJANGO_SUPERUSER_EMAIL" || true
 fi
